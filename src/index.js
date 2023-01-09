@@ -16,7 +16,9 @@ module.exports = {
       types: [],
       plugins: [],
       // GraphQL SDL
-      typeDefs: ``,
+      typeDefs: `type Order {
+        url: String
+      }`,
       resolvers: {
         Mutation: {
           createOrder: {
@@ -29,7 +31,7 @@ module.exports = {
               try {
                 // retrieve item information
                 const lineItems = await Promise.all(
-                  products.map(async (product) => {
+                  JSON.parse(products).map(async (product) => {
                     const item = await strapi
                       .service("api::item.item")
                       .findOne(product.id);
@@ -53,8 +55,8 @@ module.exports = {
                   customer_email: email,
                   mode: "payment",
                   success_url:
-                    "http://localhost:3000/success?session={CHECKOUT_SESSION_ID}",
-                  cancel_url: "http://localhost:3000/",
+                    "http://localhost:3000/success?session={CHECKOUT_SESSION_ID}&confirmed=true",
+                  cancel_url: "http://localhost:3000/checkout?canceled=true",
                   line_items: lineItems,
                 });
 
@@ -65,13 +67,23 @@ module.exports = {
                     data: { username, products, stripeSessionId: session.id },
                   });
 
+                // console.log(createdOrder);
                 // return the session id
-                return toEntityResponse(createdOrder);
+                return toEntityResponse({ ...createdOrder, url: session.url });
               } catch (error) {
                 // ctx
                 console.log(error);
+                // throw error
                 return {
-                  error: { message: "There was a problem creating the charge" },
+                  errors: [
+                    {
+                      message: error.message,
+                      extensions: {
+                        error: { message: error.message },
+                        code: error.type,
+                      },
+                    },
+                  ],
                 };
               }
             },

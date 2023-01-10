@@ -32,9 +32,10 @@ module.exports = {
                 // retrieve item information
                 const lineItems = await Promise.all(
                   JSON.parse(products).map(async (product) => {
-                    const item = await strapi
-                      .service("api::item.item")
-                      .findOne(product.id);
+                    const item = await strapi.entityService.findOne(
+                      "api::item.item",
+                      product.id
+                    );
 
                     return {
                       price_data: {
@@ -61,11 +62,12 @@ module.exports = {
                 });
 
                 // create the item
-                const createdOrder = await strapi
-                  .service("api::order.order")
-                  .create({
+                const createdOrder = await strapi.entityService.create(
+                  "api::order.order",
+                  {
                     data: { username, products, stripeSessionId: session.id },
-                  });
+                  }
+                );
 
                 // console.log(createdOrder);
                 // return the session id

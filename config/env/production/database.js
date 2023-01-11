@@ -1,8 +1,6 @@
 const mysql = require("mysql");
 
-const connection = mysql.createConnection(
-  `${process.env.CLEARDB_DATABASE_URL}`
-);
+const connection = mysql.createConnection(`${process.env.JAWSDB_URL}`);
 
 module.exports = ({ env }) => ({
   connection: {
